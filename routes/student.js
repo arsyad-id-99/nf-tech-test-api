@@ -6,10 +6,40 @@ const auth = require('../middleware/authMiddleware');
 // 1. Add Student
 router.post('/', auth, async (req, res) => {
   try {
-    const student = new Student(req.body);
-    await student.save();
-    res.status(201).json(student);
-  } catch (err) { res.status(400).json({ error: err.message }); }
+    const { namaLengkap, nisn, tanggalLahir, jurusan } = req.body;
+
+    // 1. Cek apakah NISN sudah terdaftar di database
+    const nisnTerdaftar = await Student.findOne({ nisn: nisn });
+    
+    if (nisnTerdaftar) {
+      return res.status(400).json({
+        success: false,
+        message: `Gagal menambahkan data. NISN ${nisn} sudah terdaftar di sistem.`
+      });
+    }
+
+    // 2. Jika lolos pengecekan, buat data siswa baru
+    const siswaBaru = new Student({
+      namaLengkap,
+      nisn,
+      tanggalLahir,
+      jurusan
+    });
+
+    await siswaBaru.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Data siswa berhasil ditambahkan",
+      data: siswaBaru
+    });
+
+  } catch (err) {
+    res.status(500).json({ 
+      success: false, 
+      error: err.message 
+    });
+  }
 });
 
 // 2. Get List (Pagination, Search by Nama/NISN, Filter by Jurusan)
