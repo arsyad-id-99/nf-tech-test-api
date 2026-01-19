@@ -1,44 +1,48 @@
 const express = require('express');
 const router = express.Router();
 const Student = require('../models/Student');
+const User = require('../models/User');
 const auth = require('../middleware/authMiddleware');
+const admin = require('../config/firebase');
 
 // 1. Add Student
 router.post('/', auth, async (req, res) => {
   try {
     const { namaLengkap, nisn, tanggalLahir, jurusan } = req.body;
 
-    // 1. Cek apakah NISN sudah terdaftar di database
-    const nisnTerdaftar = await Student.findOne({ nisn: nisn });
-    
+    const nisnTerdaftar = await Student.findOne({ nisn });
     if (nisnTerdaftar) {
-      return res.status(400).json({
-        success: false,
-        message: `Gagal menambahkan data. NISN ${nisn} sudah terdaftar di sistem.`
-      });
+      return res.status(400).json({ success: false, message: "NISN sudah terdaftar" });
     }
 
-    // 2. Jika lolos pengecekan, buat data siswa baru
-    const siswaBaru = new Student({
-      namaLengkap,
-      nisn,
-      tanggalLahir,
-      jurusan
-    });
-
+    const siswaBaru = new Student({ namaLengkap, nisn, tanggalLahir, jurusan });
     await siswaBaru.save();
+
+    const currentUser = await User.findById(req.user.id);
+
+    if (currentUser && currentUser.deviceToken) {
+      const message = {
+        notification: {
+          title: 'Data Siswa Ditambahkan',
+          body: `Siswa baru atas nama ${namaLengkap} berhasil disimpan!`
+        },
+        token: currentUser.deviceToken
+      };
+
+      admin.messaging().send(message)
+        .then((response) => console.log('Notifikasi terkirim:', response))
+        .catch((error) => console.log('Gagal kirim notifikasi:', error));
+    }
+    // --------------------------------
 
     res.status(201).json({
       success: true,
-      message: "Data siswa berhasil ditambahkan",
+      message: "Data siswa berhasil ditambahkan dan notifikasi dikirim",
       data: siswaBaru
     });
 
   } catch (err) {
-    res.status(500).json({ 
-      success: false, 
-      error: err.message 
-    });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
