@@ -70,11 +70,31 @@ router.get('/jurusan', (req, res) => {
   }
 });
 
-// 4. Get Detail
-router.get('/:id', auth, async (req, res) => {
-  const student = await Student.findById(req.params.id);
-  if (!student) return res.status(404).json({ msg: "Siswa tidak ditemukan" });
-  res.json(student);
+// 4. Get Detail Siswa berdasarkan NISN
+router.get('/:nisn', auth, async (req, res) => {
+  try {
+    const { nisn } = req.params;
+
+    // Mencari satu data yang memiliki nisn sesuai parameter
+    const student = await Student.findOne({ nisn: nisn });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: `Siswa dengan NISN ${nisn} tidak ditemukan`
+      });
+    }
+
+    res.json({
+      success: true,
+      data: student
+    });
+  } catch (err) {
+    res.status(500).json({ 
+      success: false, 
+      error: err.message 
+    });
+  }
 });
 
 module.exports = router;
