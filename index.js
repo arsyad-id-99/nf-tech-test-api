@@ -12,8 +12,11 @@ app.use('/api/student', require('./routes/student'));
 
 // Koneksi Database
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+  .then(() => console.log('✅ Berhasil Terhubung ke MongoDB'))
+  .catch(err => {
+    console.error('❌ Gagal Koneksi Database:');
+    console.error(err.message);
+  });
 
 // Route Dummy
 app.get('/', (req, res) => res.send('API Running'));
