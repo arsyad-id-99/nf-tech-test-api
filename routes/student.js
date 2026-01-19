@@ -29,7 +29,22 @@ router.get('/', auth, async (req, res) => {
   res.json({ data, totalPage: Math.ceil(count / limit), currentPage: page });
 });
 
-// 3. Get Detail
+// 3. Get List Jurusan (Static dari Enum)
+router.get('/jurusan', (req, res) => {
+  try {
+    // Daftar jurusan sesuai dengan Enum di Model Siswa
+    const listJurusan = ['IPA', 'IPS', 'Bahasa'];
+    
+    res.json({
+      success: true,
+      data: listJurusan
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Gagal mengambil data jurusan" });
+  }
+});
+
+// 4. Get Detail
 router.get('/:id', auth, async (req, res) => {
   const student = await Student.findById(req.params.id);
   if (!student) return res.status(404).json({ msg: "Siswa tidak ditemukan" });
