@@ -32,13 +32,13 @@ router.get('/', auth, async (req, res) => {
     }
 
     // Eksekusi Query
-    const data = await Siswa.find(query)
+    const data = await Student.find(query)
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 }); // Urutkan dari yang terbaru
 
     // Menghitung total data untuk pagination
-    const count = await Siswa.countDocuments(query);
+    const count = await Student.countDocuments(query);
 
     res.json({
       success: true,
@@ -58,7 +58,7 @@ router.get('/', auth, async (req, res) => {
 // 3. Get List Jurusan (Static dari Enum)
 router.get('/jurusan', (req, res) => {
   try {
-    // Daftar jurusan sesuai dengan Enum di Model Siswa
+    // Daftar jurusan sesuai dengan Enum di Model Student
     const listJurusan = ['IPA', 'IPS', 'Bahasa'];
     
     res.json({
